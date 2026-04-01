@@ -1,0 +1,44 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ops-portal-backend
+  labels:
+    app: ops-portal-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ops-portal-backend
+  template:
+    metadata:
+      labels:
+        app: ops-portal-backend
+    spec:
+      containers:
+      - name: backend
+        image: your-docker-hub/ops-backend:latest
+        ports:
+        - containerPort: 8000
+        envFrom:
+        - secretRef:
+            name: argo-secrets
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ops-portal-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ops-portal-frontend
+  template:
+    metadata:
+      labels:
+        app: ops-portal-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: your-docker-hub/ops-frontend:latest
+        ports:
+        - containerPort: 80
