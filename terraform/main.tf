@@ -1,13 +1,12 @@
 terraform {
-  required_version = ">= 1.7.0"
   required_providers {
+    kubectl = {
+      source  = "gavinbunney/kubectl"
+      version = ">= 1.14.0" # Or your preferred version
+    }
     aws = {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
   }
-}
-
-provider "aws" {
-  region = var.aws_region
 }
