@@ -1,12 +1,12 @@
 # AWS Infrastructure Configuration
-aws_region   = "us-east-1"
+aws_region   = "us-east-2"
 project_name = "ops-control-portal"
 
 # EKS Cluster Settings
 cluster_version = "1.27"
 
 # Instance type -> Recommended at least 8gb of RAM for smooth experience
-instance_types  = ["Replace this with your instance type"]
+instance_types  = ["m7i-flex.large"]
 node_count      = 2
 
 # ArgoCD Configuration
