@@ -1,0 +1,93 @@
+# 1. BACKEND DEPLOYMENT
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ops-portal-backend
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ops-portal-backend
+  template:
+    metadata:
+      labels:
+        app: ops-portal-backend
+    spec:
+      containers:
+      - name: backend
+        image: ankitbiswal/ops-backend:latest
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "250m"
+            memory: "256Mi"
+        envFrom:
+        - secretRef:
+            name: argo-secrets
+
+---
+# 2. BACKEND SERVICE (Internal)
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: default
+spec:
+  selector:
+    app: ops-portal-backend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+
+---
+# 3. FRONTEND DEPLOYMENT
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ops-portal-frontend
+  namespace: default
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ops-portal-frontend
+  template:
+    metadata:
+      labels:
+        app: ops-portal-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: ankitbiswal/ops-frontend:latest
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: "50m"
+            memory: "64Mi"
+
+---
+# 4. FRONTEND SERVICE (External Load Balancer)
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-service
+  namespace: default
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+spec:
+  type: LoadBalancer
+  selector:
+    app: ops-portal-frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
