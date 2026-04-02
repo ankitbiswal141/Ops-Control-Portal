@@ -1,26 +1,43 @@
 @import "tailwindcss";
 
 :root {
+  /* Keeping base variables for general CSS use */
   --background: #ffffff;
   --foreground: #171717;
+  
+  /* Adding custom hex values as variables */
+  --surface: #0f172a;
+  --border: #1e293b;
+  --brand: #3b82f6;
 }
 
 @theme inline {
+  /* Standard Next.js mappings */
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+
+  /* Adding specific colors to the Tailwind engine */
+  --color-surface: var(--surface);
+  --color-border-custom: var(--border);
+  --color-brand: var(--brand);
+  
+  /* Overriding the default background for Slate-950 specifically */
+  --color-background-deep: #020617;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
+    --background: #020617; /* Set to your requested Slate-950 */
     --foreground: #ededed;
+    --surface: #0f172a;
+    --border: #1e293b;
   }
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
