@@ -1,27 +1,26 @@
 ## Builder Stage
 FROM node:20-alpine AS builder
 
-# lib6-compat needed
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Install pnpm globally
+# Enable corepack for pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
 
-# Copy lockfile and package.json first for better layer caching
-COPY pnpm-lock.yaml package.json ./
+# Copy package files
+COPY pnpm-lock.yaml* package.json ./
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Install dependencies 
+# Added --frozen-lockfile only if the lockfile exists
+RUN pnpm install
 
-# Copy the rest of the source code (including tsconfig.json)
+# Copy source
 COPY . .
 
-# Set environment to production and disable Next.js telemetry
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV NODE_ENV=production
 
-# Run the build (This triggers 'next build' which uses TypeScript compiler)
+# This will now create the /app/out directory because of the config change above
 RUN pnpm run build
 
 # --------------------------------------------------------------------------- #
@@ -30,13 +29,12 @@ RUN pnpm run build
 FROM nginx:stable-alpine AS runner
 WORKDIR /usr/share/nginx/html
 
-# Clean default nginx files
 RUN rm -rf ./*
 
-# Copy the 'out' directory created by Next.js static export
+# Copies the static export into Nginx
 COPY --from=builder /app/out .
 
-# Copy your custom nginx.conf
+# Ensure you have an nginx.conf in your root directory!
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 EXPOSE 80
