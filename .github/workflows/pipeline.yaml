@@ -55,6 +55,8 @@ jobs:
   update-manifests:
     needs: [build-frontend, build-backend]
     runs-on: ubuntu-latest
+    permissions:
+      contents: write  # Allow writing to repository contents
     steps:
       - uses: actions/checkout@v4
       
