@@ -1,7 +1,3 @@
-provider "aws" {
-  region = var.aws_region
-}
-
 # Fetch cluster info dynamically
 data "aws_eks_cluster" "cluster" {
   name = module.eks.cluster_name
