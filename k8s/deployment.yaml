@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: your-docker-hub/ops-backend:latest
+        image: ankitbiswal/ops-backend:366fe58293038d7e6b174351cfa39dfdd0b7a7a5
         ports:
         - containerPort: 8000
         envFrom:
@@ -39,6 +39,6 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: your-docker-hub/ops-frontend:latest
+        image: ankitbiswal/ops-frontend:366fe58293038d7e6b174351cfa39dfdd0b7a7a5
         ports:
         - containerPort: 80
