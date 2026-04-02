@@ -1,4 +1,11 @@
 terraform {
+  backend "s3" {
+    bucket         = "your-unique-state-bucket"
+    key            = "prod/terraform.tfstate"
+    region         = "us-east-1"
+    encrypt        = true
+  }
+
   required_providers {
     kubectl = {
       source  = "gavinbunney/kubectl"
