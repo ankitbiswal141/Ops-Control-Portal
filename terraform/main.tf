@@ -1,4 +1,11 @@
 terraform {
+  backend "s3" {
+    bucket         = "my-terraform-state-bucket" # Create this manually once
+    key            = "ops-portal/terraform.tfstate"
+    region         = "us-east-1"
+    dynamodb_table = "terraform-lock"            # Optional: Prevents concurrent runs
+  }
+
   required_providers {
     kubectl = {
       source  = "gavinbunney/kubectl"
