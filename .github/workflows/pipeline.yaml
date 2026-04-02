@@ -104,7 +104,7 @@ jobs:
 
       - name: Terraform Init
         id: apply
-        run: cd terraform && terraform init -backend=false -upgrade
+        run: cd terraform && terraform init -upgrade
 
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
