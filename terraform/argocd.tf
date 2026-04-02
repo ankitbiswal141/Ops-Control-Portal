@@ -6,6 +6,10 @@ resource "helm_release" "argocd" {
   namespace        = "argocd"
   create_namespace = true
   version          = "5.46.7"
+  wait            = true
+  timeout         = 600
+
+  depends_on = [module.eks]
 
   # Expose ArgoCD via LoadBalancer for our Python Backend to reach it
   set {
