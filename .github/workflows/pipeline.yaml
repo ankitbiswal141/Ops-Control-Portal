@@ -84,27 +84,18 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # 3. Infrastructure Deployment
-  terraform:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v3
-
-      - name: Terraform Init
-        run: cd terraform && terraform init
-
-      - name: Terraform Apply
-        run: cd terraform && terraform apply -auto-approve
-
   terraform-deploy:
     needs: [validate] # Only runs if linting/security passes
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
@@ -112,6 +103,7 @@ jobs:
           terraform_version: "1.7.0"
 
       - name: Terraform Init
+        id: apply
         run: cd terraform && terraform init -backend=false -upgrade
 
       - name: Terraform Apply
@@ -121,6 +113,14 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           TF_VAR_argo_token: ${{ secrets.ARGO_TOKEN }}
+
+      - name: Wait for Verification
+        if: steps.apply.outcome == 'success'
+        run: sleep 30
+
+      - name: Terraform Destroy
+        if: always()
+        run: cd terraform && terraform destroy -auto-approve
 
   # 3. GitOps Trigger (Update K8s Manifests)
   update-manifests:
