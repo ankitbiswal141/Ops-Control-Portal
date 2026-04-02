@@ -22,7 +22,7 @@ jobs:
       - name: Terraform Init & Validate
         run: |
           cd terraform
-          terraform init -backend=false
+          terraform init -backend=false -upgrade
           terraform validate
 
       # Security Scan of the source code
