@@ -3,7 +3,7 @@ module "eks" {
   version = "19.15.3"
 
   cluster_name    = "ops-control-cluster"
-  cluster_version = "1.27.0"  # Change to a fully qualified version or use a supported version
+  cluster_version = var.cluster_version  # Change to a fully qualified version or use a supported version
 
   vpc_id                         = module.vpc.vpc_id
   subnet_ids                     = module.vpc.private_subnets
