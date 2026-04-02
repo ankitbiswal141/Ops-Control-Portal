@@ -95,15 +95,10 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Init
-        run: terraform init
+        run: cd terraform && terraform init
 
       - name: Terraform Apply
-        run: terraform apply -auto-approve
-
-      # This is the "Magic" step
-      - name: Terraform Destroy
-        if: always() # This ensures it runs even if Apply fails
-        run: terraform destroy -auto-approve
+        run: cd terraform && terraform apply -auto-approve
 
   terraform-deploy:
     needs: [validate] # Only runs if linting/security passes
