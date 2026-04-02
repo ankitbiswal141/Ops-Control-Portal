@@ -28,8 +28,7 @@ data "local_file" "argocd_app" {
 }
 
 resource "kubectl_manifest" "argocd_app_bootstrap" {
-  provider  = kubectl.kubectl
+  # Remove the 'provider' line entirely
   yaml_body = data.local_file.argocd_app.content
-  
   depends_on = [helm_release.argocd]
 }
