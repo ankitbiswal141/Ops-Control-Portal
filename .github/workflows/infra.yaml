@@ -23,6 +23,22 @@ jobs:
         with:
           terraform_version: "1.7.0"
 
+      - name: Debug and Extract Metadata
+        run: |
+          echo "--- Current Directory Structure ---"
+          ls -R
+          
+          echo "--- Checking Terraform Folder ---"
+          if [ -d "terraform" ]; then
+            echo "Directory 'terraform' exists."
+            cd terraform
+            CLUSTER_NAME=$(terraform output -raw cluster_name)
+            aws eks update-kubeconfig --region us-east-2 --name "$CLUSTER_NAME"
+          else
+            echo "ERROR: Directory 'terraform' NOT FOUND at root."
+            exit 1
+          fi
+
       - name: Terraform Apply
         id: apply
         run: |
