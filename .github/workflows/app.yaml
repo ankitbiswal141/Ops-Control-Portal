@@ -44,10 +44,15 @@ jobs:
           sed -i "s|image: .*/ops-backend:.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/ops-backend:${{ github.sha }}|g" deployments/cloud/app-stack.yaml
           sed -i "s|image: .*/ops-frontend:.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/ops-frontend:${{ github.sha }}|g" deployments/cloud/app-stack.yaml
           
-      - name: GitOps Commit
+      - name: GitOps Manifests
         run: |
-          git config --global user.name "GitOps Bot"
-          git config --global user.email "bot@ops-control.com"
-          git add deployments/cloud/app-stack.yaml
-          git commit -m "chore: version ${{ github.sha }} [skip ci]" || exit 0
+          TARGET_FILE="deployment/cloud/deployment.yaml"
+          
+          # This specifically replaces the image line with the new SHA tag
+          sed -i "s|image: .*/ops-backend:.*|image: ${{ secrets.DOCKER_USERNAME }}/ops-backend:${{ github.sha }}|g" $TARGET_FILE
+          
+          git config --global user.name "github-actions"
+          git config --global user.email "github-actions@github.com"
+          git add $TARGET_FILE
+          git commit -m "chore: update backend image to ${{ github.sha }} [skip ci]"
           git push
