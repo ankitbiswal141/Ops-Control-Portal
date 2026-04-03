@@ -1,0 +1,51 @@
+name: "2. App Build & GitOps Sync"
+on:
+  push:
+    branches: [ main ]
+    paths: ['frontend/**', 'backend/**', 'deployments/cloud/**']
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    outputs:
+      sha: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build & Push Backend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./backend
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ops-backend:${{ github.sha }}
+
+      - name: Build & Push Frontend
+        uses: docker/build-push-action@v5
+        with:
+          context: ./frontend/main-page
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/ops-frontend:${{ github.sha }}
+
+  update-manifests:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    permissions: { contents: write }
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update Image Tags
+        run: |
+          sed -i "s|image: .*/ops-backend:.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/ops-backend:${{ github.sha }}|g" deployments/cloud/app-stack.yaml
+          sed -i "s|image: .*/ops-frontend:.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/ops-frontend:${{ github.sha }}|g" deployments/cloud/app-stack.yaml
+          
+      - name: GitOps Commit
+        run: |
+          git config --global user.name "GitOps Bot"
+          git config --global user.email "bot@ops-control.com"
+          git add deployments/cloud/app-stack.yaml
+          git commit -m "chore: version ${{ github.sha }} [skip ci]" || exit 0
+          git push
