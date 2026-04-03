@@ -41,8 +41,8 @@ jobs:
       - uses: actions/checkout@v4
       - name: Update Image Tags
         run: |
-          sed -i "s|image: .*/ops-backend:.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/ops-backend:${{ github.sha }}|g" deployments/cloud/deployment.yaml
-          sed -i "s|image: .*/ops-frontend:.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/ops-frontend:${{ github.sha }}|g" deployments/cloud/deployment.yaml
+          sed -i "s|image: .*/ops-backend:.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/ops-backend:${{ github.sha }}|g" deployment/cloud/deployment.yaml
+          sed -i "s|image: .*/ops-frontend:.*|image: ${{ secrets.DOCKERHUB_USERNAME }}/ops-frontend:${{ github.sha }}|g" deployment/cloud/deployment.yaml
           
       - name: GitOps Manifests
         run: |
