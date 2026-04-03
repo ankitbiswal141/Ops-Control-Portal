@@ -55,7 +55,7 @@ spec:
     spec:
       containers:
       - name: frontend
-        image: ankitbiswal/ops-frontend:latest
+        image: ankitbiswal/ops-frontend:802a15f1c2c50a0f92c0a40ab507bdf7f068b729
         ports:
         - containerPort: 80
         resources:
