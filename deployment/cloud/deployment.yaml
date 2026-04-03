@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ops-portal-backend
-  namespace: default
+  namespace: argocd
 spec:
   replicas: 2
   selector:
@@ -16,7 +16,13 @@ spec:
     spec:
       containers:
       - name: backend
-        image: ankitbiswal/ops-backend:latest
+        image: ${{ secrets.DOCKERHUB_USERNAME }}/ops-portal-backend:${{ github.sha }}
+        env:
+            - name: ARGOCD_AUTH_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: argo-secrets  # Must match the name in argocd.tf
+                  key: ARGOCD_AUTH_TOKEN
         ports:
         - containerPort: 8000
         resources:
@@ -31,27 +37,12 @@ spec:
             name: argo-secrets
 
 ---
-# 2. BACKEND SERVICE (Internal)
-apiVersion: v1
-kind: Service
-metadata:
-  name: backend-service
-  namespace: default
-spec:
-  selector:
-    app: ops-portal-backend
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 8000
-
----
 # 3. FRONTEND DEPLOYMENT
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: ops-portal-frontend
-  namespace: default
+  namespace: argocd
 spec:
   replicas: 2
   selector:
@@ -71,23 +62,3 @@ spec:
           requests:
             cpu: "50m"
             memory: "64Mi"
-
----
-# 4. FRONTEND SERVICE (External Load Balancer)
-apiVersion: v1
-kind: Service
-metadata:
-  name: frontend-service
-  namespace: default
-  annotations:
-    service.beta.kubernetes.io/aws-load-balancer-type: "external"
-    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
-    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
-spec:
-  type: LoadBalancer
-  selector:
-    app: ops-portal-frontend
-  ports:
-    - protocol: TCP
-      port: 80
-      targetPort: 80

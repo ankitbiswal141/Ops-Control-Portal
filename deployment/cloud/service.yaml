@@ -1,7 +1,9 @@
+# FRONTEND SERVICE (External Load Balancer)
 apiVersion: v1
 kind: Service
 metadata:
   name: frontend-service
+  namespace: argocd
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: "external"
     service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
@@ -14,3 +16,18 @@ spec:
     - protocol: TCP
       port: 80
       targetPort: 80
+
+---
+# BACKEND SERVICE (Internal)
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+  namespace: argocd
+spec:
+  selector:
+    app: ops-portal-backend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
