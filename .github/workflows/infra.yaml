@@ -39,3 +39,17 @@ jobs:
           sleep 20
           echo "---------------------------------------------------"
           # ... rest of your echo commands
+          # Retrieve the ArgoCD LoadBalancer Hostname
+          export ARGOCD_HOST=$(kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+          
+          # Decode the initial administrative password
+          export ARGOCD_PASSWORD=$(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d)
+          
+          # Output metadata to the workflow log for administrative access
+          echo "================ DEPLOYMENT SUMMARY ================"
+          echo "ArgoCD Access URL: http://$ARGOCD_HOST"
+          echo "Admin Username:    admin"
+          echo "Initial Password:  $ARGOCD_PASSWORD"
+          echo "===================================================="
+
+        working-directory: ./deployment/cloud
