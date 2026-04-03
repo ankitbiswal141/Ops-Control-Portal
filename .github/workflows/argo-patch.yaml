@@ -1,0 +1,31 @@
+name: "Admin: Enable ArgoCD API Keys"
+on: 
+  workflow_dispatch: # This allows you to click a button to run it
+
+jobs:
+  patch-argo:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Update Kubeconfig
+        run: |
+          # Use a hardcoded name or a quick list to find your cluster
+          CLUSTER_NAME=$(aws eks list-clusters --query "clusters[0]" --output text)
+          aws eks update-kubeconfig --region us-east-2 --name "$CLUSTER_NAME"
+
+      - name: Patch ArgoCD Config
+        run: |
+          echo "Enabling apiKey capability for admin account..."
+          kubectl patch configmap argocd-cm -n argocd --type merge -p '{"data": {"accounts.admin": "apiKey"}}'
+          
+          echo "Restarting ArgoCD Server to apply changes..."
+          kubectl rollout restart deployment argocd-server -n argocd
+          
+          echo "Waiting for rollout to complete..."
+          kubectl rollout status deployment/argocd-server -n argocd --timeout=60s
