@@ -23,38 +23,24 @@ jobs:
         with:
           terraform_version: "1.7.0"
 
-      - name: Debug and Extract Metadata
-        run: |
-          echo "--- Current Directory Structure ---"
-          ls -R
-          
-          echo "--- Checking Terraform Folder ---"
-          if [ -d "terraform" ]; then
-            echo "Directory 'terraform' exists."
-            cd terraform
-            CLUSTER_NAME=$(terraform output -raw cluster_name)
-            aws eks update-kubeconfig --region us-east-2 --name "$CLUSTER_NAME"
-          else
-            echo "ERROR: Directory 'terraform' NOT FOUND at root."
-            exit 1
-          fi
-
       - name: Terraform Apply
         id: apply
         run: |
-          cd terraform
           terraform init
           terraform apply -auto-approve
+
+        working-directory: terraform
         env:
           TF_VAR_argo_token: ${{ secrets.ARGO_TOKEN }}
 
       - name: Export ArgoCD Access Info
         if: success()
+        working-directory: terraform
         run: |
+          CLUSTER_NAME=$(terraform output - raw cluster_name)
           aws eks update-kubeconfig --region us-east-2 --name $(cd terraform && terraform output -raw cluster_name)
-          sleep 20
+          sleep 30
           echo "---------------------------------------------------"
-          # ... rest of your echo commands
           # Retrieve the ArgoCD LoadBalancer Hostname
           export ARGOCD_HOST=$(kubectl get svc argocd-server -n argocd -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
           
@@ -67,5 +53,3 @@ jobs:
           echo "Admin Username:    admin"
           echo "Initial Password:  $ARGOCD_PASSWORD"
           echo "===================================================="
-
-        working-directory: terraform
