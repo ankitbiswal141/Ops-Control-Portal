@@ -32,3 +32,9 @@ variable "repo_url" {
   type        = string
   description = "https://github.com/ankitbiswal141/Ops-Control-Portal.git"
 }
+
+variable "argo_token" {
+  description = "The token for ArgoCD authentication"
+  type        = string
+  sensitive   = true
+}
