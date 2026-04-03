@@ -46,6 +46,10 @@ jobs:
           
       - name: GitOps Manifests
         run: |
+          echo "--- Current Directory ---"
+          pwd
+          ls -R deployment/
+          
           TARGET_FILE="deployment/cloud/deployment.yaml"
           
           # This specifically replaces the image line with the new SHA tag
