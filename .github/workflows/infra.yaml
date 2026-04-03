@@ -1,0 +1,38 @@
+name: "1. Infrastructure (EKS & ArgoCD)"
+on:
+  push:
+    branches: [ main ]
+    paths: ['terraform/**']
+  workflow_dispatch:
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-2
+
+      - name: Terraform Apply
+        id: apply
+        run: |
+          cd terraform
+          terraform init
+          terraform apply -auto-approve
+        env:
+          TF_VAR_argo_token: ${{ secrets.ARGO_TOKEN }}
+
+      - name: Export ArgoCD Access Info
+        if: success()
+        run: |
+          aws eks update-kubeconfig --region us-east-1 --name $(cd terraform && terraform output -raw cluster_name)
+          echo "---------------------------------------------------"
+          echo "ARGOCD URL: $(cd terraform && terraform output -raw argocd_url)"
+          echo "LOGIN: admin"
+          echo "PASSWORD: $(kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath='{.data.password}' | base64 -d)"
+          echo "---------------------------------------------------"
