@@ -7,7 +7,29 @@ resource "kubernetes_secret" "backend_secret" {
   data = {
     ARGOCD_AUTH_TOKEN = var.argo_token 
   }
-
-  # Wait for Helm to create the 'argocd' namespace first!
+  
   depends_on = [helm_release.argocd]
+}
+
+resource "helm_release" "argocd" {
+  name             = "argocd"
+  repository       = "https://argoproj.github.io/argo-helm"
+  chart            = "argo-cd"
+  namespace        = "argocd"
+  create_namespace = true
+  version          = "5.46.7"
+  wait             = true
+  timeout          = 600
+
+  depends_on = [module.eks]
+
+  set {
+    name  = "server.service.type"
+    value = "LoadBalancer"
+  }
+  
+  set {
+    name  = "server.extraArgs"
+    value = "{--insecure}"
+  }
 }
