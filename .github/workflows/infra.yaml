@@ -52,4 +52,4 @@ jobs:
           echo "Initial Password:  $ARGOCD_PASSWORD"
           echo "===================================================="
 
-        working-directory: ./deployment/cloud
+        working-directory: terraform
