@@ -22,16 +22,19 @@ OpsControl is a cloud-native internal developer platform (IDP) designed to bridg
 ## Project Structure
 ```text
 .
-├── .github/workflows/    # CI/CD Pipelines
-├── backend/              # Modular FastAPI Engine
-│   ├── app/              # Core logic, Services, Schemas
-│   └── Dockerfile        # Multi-stage Python build
-├── frontend/main-page/   # Next.js 14 Dashboard
-│   ├── Dockerfile        # Nginx-based production image
-│   └── next.config.mjs   # Static export configuration
-├── k8s/                  # GitOps Manifests (ArgoCD targets)
-├── terraform/            # Infrastructure as Code
-└── Makefile              # Developer shortcuts
+├── .github/workflows/          # CI/CD Pipelines
+├── backend/                    # Modular FastAPI Engine
+│   ├── app/                    # Core logic, Services, Schemas
+│   └── Dockerfile              # Multi-stage Python build  
+├── frontend/main-page/         # Next.js 14 Dashboard
+│   ├── Dockerfile              # Nginx-based production image
+│   └── next.config.mjs         # Static export configuration
+├── deployment/                 # Kubernetes & Orchestration manifests.
+│   ├── cloud/                  # Cloud-specific resources (Staging/Production).
+│   │   └── argocd-app.yaml     # GitOps Config: Defines the ArgoCD Application that
+│   └── local/                  # Local development manifests (DockerCompose, Kind configs)
+├── terraform/                  # Infrastructure as Code
+└── Makefile                    # Developer shortcuts
 
 ```
 
