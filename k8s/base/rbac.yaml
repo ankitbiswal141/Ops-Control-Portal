@@ -1,0 +1,17 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: platform-admin
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"] # Can trigger any ArgoCD Sync
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: app-developer
+rules:
+- apiGroups: [""]
+  resources: ["pods", "services", "configmaps"]
+  verbs: ["get", "list", "watch"] # Cannot trigger Syncs without approval

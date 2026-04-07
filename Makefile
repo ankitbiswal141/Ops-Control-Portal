@@ -1,28 +1,20 @@
-.PHONY: help build-all run-local clean-containers tf-init tf-plan
+# OpsControl V2 Management
+.PHONY: setup-infra build-local dev-logs
 
-help:
-	@echo "  OpsControl Management Commands:"
-	@echo "  make build-all    - Build Frontend (pnpm) and Backend Docker images"
-	@echo "  make run-local    - Spin up the full stack using Docker Compose"
-	@echo "  make tf-plan      - Show Terraform infrastructure changes"
-	@echo "  make clean        - Stop containers and remove volumes"
+# Tier 1: Infrastructure
+setup-infra:
+	@echo "Initializing Remote State..."
+	cd terraform/bootstrap && terraform init && terraform apply -auto-approve
 
-build-all:
-	@echo "Building Released Forms..."
+# Tier 2: Development
+build-local:
 	docker-compose build
-
-run-local:
-	@echo "Starting local development environment..."
 	docker-compose up -d
 
-tf-init:
-	@echo "Initializing Terraform..."
-	cd terraform && terraform init
+dev-logs:
+	docker-compose logs -f
 
-tf-plan:
-	@echo "Planning Infrastructure..."
-	cd terraform && terraform plan -var-file="terraform.tfvars"
-
+# Tier 3: Cleanup
 clean:
-	@echo "Cleaning up..."
-	docker-compose down -v
+	docker-compose down
+	find . -name "*.tfstate*" -delete
