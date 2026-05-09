@@ -1,40 +1,52 @@
-# OpsControl: Enterprise Developer Portal & GitOps Engine
+# OpsControl: Enterprise Developer Portal & GitOps Engine (V2.0)
 
-OpsControl is a cloud-native internal developer platform (IDP) designed to bridge the gap between application development and infrastructure management. It provides a centralized dashboard for triggering manual GitOps synchronizations via ArgoCD, monitoring cluster health, and automating deployment lifecycles.
+OpsControl is a cloud-native **Internal Developer Platform (IDP)** designed to bridge the gap between application development and infrastructure orchestration. It provides a centralized control plane for triggering manual GitOps synchronizations via **ArgoCD**, monitoring cluster health, and automating complex deployment lifecycles.
 
 ---
 
-## Tech Stack & Architecture
+## 🏗️ Architectural Evolution (Microservices)
+
+Originally built as a monolith, OpsControl has evolved into a **Decoupled 3-Tier Microservices Architecture** to ensure high availability and independent scalability:
+
+* **Presentation Tier:** Next.js 14 (App Router) served via hardened Nginx instances.
+* **Application Tier:** Distributed FastAPI Microservices (Python v3.12) with Pydantic-driven type safety.
+* **Data & State Tier:** (Roadmap) Persistent PostgreSQL state for deployment auditing.
+* **Networking:** AWS Load Balancer Controller managing traffic via a unified **Ingress/ALB** strategy.
+
+---
+
+## 🛠️ Tech Stack
 
 ### **Core Infrastructure**
-* **IaC:** Terraform (Modular AWS VPC, EKS, Helm, & Kubectl providers)
-* **Orchestration:** Kubernetes (EKS)
-* **GitOps:** ArgoCD (App-of-Apps pattern)
-* **CI/CD:** GitHub Actions (Multi-stage Docker builds & manifest patching)
+* **IaC:** Terraform (Modular AWS VPC, EKS, Helm, & Kubectl providers).
+* **Orchestration:** Kubernetes (EKS) with Horizontal Pod Autoscaling (HPA).
+* **GitOps:** ArgoCD (Utilizing the **App-of-Apps** pattern).
+* **Security:** Aqua Security **Trivy** (Vulnerability Scanning) & Non-root container execution.
 
 ### **Application Layer**
-* **Frontend:** Next.js 14 (App Router), TypeScript, TailwindCSS, pnpm
-* **Backend:** FastAPI (Python v3.12), Pydantic (Type safety), Modular Service Architecture
-* **Server:** Nginx (Static asset delivery for Next.js "Released Form")
+* **Frontend:** Next.js 14, TypeScript, TailwindCSS, pnpm.
+* **Backend:** FastAPI, Pydantic, Modular Service Architecture.
+* **CI/CD:** GitHub Actions (Path-aware triggers & Automated manifest patching).
 
 ---
 
-## Project Structure
+## 📂 Project Structure
+
 ```text
 .
-├── .github/workflows/          # CI/CD Pipelines
-├── backend/                    # Modular FastAPI Engine
-│   ├── app/                    # Core logic, Services, Schemas
-│   └── Dockerfile              # Multi-stage Python build  
-├── frontend/main-page/         # Next.js 14 Dashboard
-│   ├── Dockerfile              # Nginx-based production image
-│   └── next.config.mjs         # Static export configuration
-├── deployment/                 # Kubernetes & Orchestration manifests.
-│   ├── cloud/                  # Cloud-specific resources (Staging/Production).
-│   │   └── argocd-app.yaml     # GitOps Config: Defines the ArgoCD Application that
-│   └── local/                  # Local development manifests (DockerCompose, Kind configs)
-├── terraform/                  # Infrastructure as Code
-└── Makefile                    # Developer shortcuts
+├── .github/workflows/        # CI/CD Pipelines (Security & GitOps Sync)
+├── services/                 # Decoupled Microservices
+│   ├── backend/              # Modular FastAPI Engine
+│   │   ├── app/              # Core logic, Services, Schemas
+│   │   └── Dockerfile        # Multi-stage Python build
+│   └── frontend/             # Next.js 14 Dashboard
+│       ├── Dockerfile        # Nginx-based production image
+│       └── next.config.mjs   # Static export configuration
+├── k8s/                      # GitOps "Source of Truth" (Kustomize)
+│   ├── base/                 # Common manifests
+│   └── overlays/             # Environment-specific patches (Cloud vs Local)
+├── terraform/                # Infrastructure as Code (IaC)
+└── Makefile                  # Developer productivity shortcuts
 
 ```
 

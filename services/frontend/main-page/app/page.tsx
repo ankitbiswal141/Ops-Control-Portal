@@ -1,73 +1,127 @@
-import { StatCard } from "@/components/StatCard";
-import { SyncButton } from "@/components/SyncButton";
-import { Activity, ShieldCheck, Zap, LayoutGrid } from "lucide-react";
+'use client'
 
-export default function Home() {
+import { useState, useEffect, useTransition } from 'react'
+import { subscribeUser, unsubscribeUser, sendNotification } from './actions'
+
+function urlBase64ToUint8Array(base64String: string) {
+  const padding = '='.repeat((4 - (base64String.length % 4)) % 4)
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/')
+  const rawData = window.atob(base64)
+  const outputArray = new Uint8Array(rawData.length)
+  for (let i = 0; i < rawData.length; ++i) {
+    outputArray[i] = rawData.charCodeAt(i)
+  }
+  return outputArray
+}
+
+function PushNotificationManager() {
+  const [isSupported, setIsSupported] = useState(false)
+  const [subscription, setSubscription] = useState<PushSubscription | null>(null)
+  const [message, setMessage] = useState('')
+  const [isPending, startTransition] = useTransition()
+
+  useEffect(() => {
+    if ('serviceWorker' in navigator && 'PushManager' in window) {
+      setIsSupported(true)
+      registerServiceWorker()
+    }
+  }, [])
+
+  async function registerServiceWorker() {
+    try {
+      const registration = await navigator.serviceWorker.register('/sw.js', {
+        scope: '/',
+        updateViaCache: 'none',
+      })
+      const sub = await registration.pushManager.getSubscription()
+      setSubscription(sub)
+    } catch (err) {
+      console.error('Service Worker registration failed:', err)
+    }
+  }
+
+  async function subscribeToPush() {
+    startTransition(async () => {
+      try {
+        const registration = await navigator.serviceWorker.ready
+        const sub = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: urlBase64ToUint8Array(
+            process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY!
+          ),
+        })
+        setSubscription(sub)
+        // Serialize properly for the Server Action
+        await subscribeUser(JSON.parse(JSON.stringify(sub)))
+      } catch (err) {
+        console.error('Failed to subscribe:', err)
+        alert('Notification permission denied or subscription failed.')
+      }
+    })
+  }
+
+  async function unsubscribeFromPush() {
+    startTransition(async () => {
+      await subscription?.unsubscribe()
+      setSubscription(null)
+      await unsubscribeUser()
+    })
+  }
+
+  if (!isSupported) {
+    return (
+      <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+        <p className="text-red-700">Push notifications are not supported in this browser.</p>
+      </div>
+    )
+  }
+
   return (
-    <div className="min-h-screen">
-      {/* Navigation */}
-      <nav className="border-b border-border bg-surface/50 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 h-16 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <LayoutGrid className="text-brand" size={24} />
-            <span className="font-bold text-lg tracking-tight">OPS-CONTROL</span>
-          </div>
-          <div className="flex items-center gap-6 text-sm text-slate-400">
-            <span className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-green-500"></span> 
-              EKS: ACTIVE
-            </span>
-            <span className="border-l border-border h-4"></span>
-            <span>v2.4.0-STABLE</span>
-          </div>
-        </div>
-      </nav>
-
-      <main className="max-w-7xl mx-auto px-6 py-12">
-        {/* Header Section */}
-        <div className="mb-12">
-          <h2 className="text-3xl font-extrabold mb-2">Infrastructure Overview</h2>
-          <p className="text-slate-500">Monitor cluster health and manage deployment lifecycles across production nodes.</p>
-        </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <StatCard 
-            label="Cluster Reliability" 
-            value="99.98%" 
-            subtext="Avg. uptime over last 30 days" 
-            icon={<Zap size={18}/>}
-            trendColor="text-emerald-400"
-          />
-          <StatCard 
-            label="Active Deployments" 
-            value="42" 
-            subtext="Running pods across 3 namespaces" 
-            icon={<Activity size={18}/>}
-            trendColor="text-brand"
-          />
-          <StatCard 
-            label="Security Posture" 
-            value="SECURE" 
-            subtext="Latest Trivy scan: 0 critical vulnerabilities" 
-            icon={<ShieldCheck size={18}/>}
-            trendColor="text-purple-400"
-          />
-        </div>
-
-        {/* Management Console */}
-        <div className="bg-surface border border-border rounded-2xl p-8 md:p-12">
-          <div className="max-w-3xl">
-            <h3 className="text-2xl font-bold mb-4">Manual GitOps Reconciliation</h3>
-            <p className="text-slate-400 text-lg mb-8 leading-relaxed">
-              Use this control to force an immediate synchronization between the GitHub repository 
-              and the Kubernetes cluster state via ArgoCD. Use primarily for emergency patches or 
-              bypassing standard polling intervals.
-            </p>
-            <SyncButton />
+    <div className="p-6 max-w-md mx-auto bg-white rounded-xl shadow-md space-y-4">
+      <h3 className="text-xl font-bold text-slate-900">Ops Control Notifications</h3>
+      {subscription ? (
+        <div className="space-y-4">
+          <p className="text-green-600 font-medium">✓ Active Subscription</p>
+          <button 
+            disabled={isPending}
+            onClick={unsubscribeFromPush}
+            className="px-4 py-2 bg-slate-200 hover:bg-slate-300 rounded text-slate-800 disabled:opacity-50 transition"
+          >
+            Disable Alerts
+          </button>
+          <div className="flex flex-col space-y-2">
+            <input
+              type="text"
+              placeholder="Test alert message..."
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              className="border p-2 rounded"
+            />
+            <button 
+              onClick={() => sendNotification(message)}
+              className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            >
+              Send Test Alert
+            </button>
           </div>
         </div>
-      </main>
+      ) : (
+        <button 
+          disabled={isPending}
+          onClick={subscribeToPush}
+          className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-700 disabled:opacity-50"
+        >
+          {isPending ? 'Connecting...' : 'Enable Push Notifications'}
+        </button>
+      )}
     </div>
-  );
+  )
+}
+
+export default function Page() {
+  return (
+    <main className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <PushNotificationManager />
+    </main>
+  )
 }
