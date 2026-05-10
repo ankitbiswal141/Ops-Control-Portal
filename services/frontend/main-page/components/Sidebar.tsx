@@ -3,40 +3,55 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 const navItems = [
-  { name: '01. Nexus', path: '/' },
-  { name: '02. Infrastructure', path: '/infra' },
-  { name: '03. Logs', path: '/logs' },
+  { id: '01', name: 'NEXUS', path: '/' },
+  { id: '02', name: 'INFRA', path: '/infra' },
+  { id: '03', name: 'LOGS', path: '/logs' },
 ];
 
 export default function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <nav className="fixed left-0 top-0 h-full w-20 md:w-64 border-r border-zinc-900 bg-black flex flex-col p-8 z-40">
-      <div className="mb-24">
-        <div className="h-8 w-8 bg-white rounded-full flex items-center justify-center">
-          <div className="h-4 w-4 bg-black rounded-full" />
+    <aside className="w-20 md:w-64 border-r border-zinc-900 flex flex-col z-40 bg-black">
+      {/* Brand Logo - Monochromatic Pulse */}
+      <div className="p-8 mb-12">
+        <div className="h-6 w-6 border-2 border-white flex items-center justify-center rotate-45">
+          <div className="h-2 w-2 bg-white animate-pulse" />
         </div>
       </div>
-      
-      <div className="flex-1 space-y-12">
-        {navItems.map((item) => (
-          <Link key={item.path} href={item.path} className="group block">
-            <span className={`text-[10px] block mb-2 tracking-[0.3em] uppercase transition-colors ${
-              pathname === item.path ? 'text-white' : 'text-zinc-600 group-hover:text-zinc-400'
-            }`}>
-              {item.name}
-            </span>
-            <div className={`h-[1px] transition-all duration-500 ${
-              pathname === item.path ? 'w-full bg-white' : 'w-0 bg-zinc-800 group-hover:w-8'
-            }`} />
-          </Link>
-        ))}
+
+      {/* Navigation Links */}
+      <nav className="flex-1 px-4 space-y-8">
+        {navItems.map((item) => {
+          const isActive = pathname === item.path;
+          return (
+            <Link key={item.path} href={item.path} className="group block">
+              <div className="flex items-center gap-4">
+                <span className={`text-[8px] font-bold ${isActive ? 'text-white' : 'text-zinc-700'}`}>
+                  {item.id}
+                </span>
+                <span className={`text-xs tracking-[0.4em] transition-all duration-300 ${
+                  isActive ? 'text-white' : 'text-zinc-500 group-hover:text-zinc-300'
+                }`}>
+                  {item.name}
+                </span>
+              </div>
+              {/* Animated underline indicator */}
+              <div className={`mt-2 h-[1px] transition-all duration-700 ${
+                isActive ? 'w-full bg-white' : 'w-0 bg-zinc-800 group-hover:w-4'
+              }`} />
+            </Link>
+          );
+        })}
+      </nav>
+
+      {/* System Metadata */}
+      <div className="p-8">
+        <div className="text-zinc-800 text-[8px] leading-loose uppercase tracking-[0.2em]">
+          OS_BUILD: 1.0.42<br />
+          EKS_ACTIVE: TRUE
+        </div>
       </div>
-      
-      <div className="text-zinc-800 text-[8px] uppercase tracking-widest leading-loose">
-        OpsControl System<br/>Build v1.0.42
-      </div>
-    </nav>
+    </aside>
   );
 }
