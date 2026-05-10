@@ -1,19 +1,27 @@
+// services/frontend/main-page/app/layout.tsx
 import "./globals.css";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import { JetBrains_Mono } from "next/font/google";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-const mono = JetBrains_Mono({ subsets: ["latin"], variable: "--font-mono" });
+const mono = JetBrains_Mono({ 
+  subsets: ["latin"], 
+  variable: "--font-mono",
+  weight: ["400", "700", "800"] 
+});
 
 export const metadata = {
-  title: "OpsControl | Developer Portal",
-  description: "Internal Engineering Infrastructure Management",
+  title: "OpsControl | v1.0",
+  description: "Essentialist Engineering Portal",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${mono.variable}`}>
-      <body className="bg-background text-slate-200 antialiased font-sans">
-        {children}
+    <html lang="en" className={`${mono.variable}`}>
+      <body className="bg-black text-white antialiased font-mono selection:bg-white selection:text-black">
+        {/* The "Device" Frame */}
+        <div className="fixed inset-0 border-[12px] border-black pointer-events-none z-50" />
+        <div className="min-h-screen flex flex-col">
+          {children}
+        </div>
       </body>
     </html>
   );
